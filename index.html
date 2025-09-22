@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Pinula Demo Cobro - Sistema de Préstamos y Cobranzas</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="logo-container">
+                    <img src="images/logo.png" alt="TV Pinula Demo Cobro" id="logo" class="logo">
+                    <h1>TV Pinula Demo Cobro</h1>
+                </div>
+                <p>Sistema de Préstamos y Cobranzas</p>
+            </div>
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sistema Principal -->
+    <div id="main-system" class="main-system" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <img src="images/logo.png" alt="TV Pinula Demo Cobro" class="header-logo">
+                <h1>TV Pinula Demo Cobro</h1>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <i class="fas fa-user"></i>
+                    <span id="current-user">Usuario</span>
+                    <div class="user-menu">
+                        <a href="#" onclick="showConfig()"><i class="fas fa-cog"></i> Configuración</a>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <ul class="nav-menu">
+                <li><a href="#" onclick="showDashboard()" class="nav-link active">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a></li>
+                <li><a href="#" onclick="showClients()" class="nav-link">
+                    <i class="fas fa-users"></i> Clientes
+                </a></li>
+                <li><a href="#" onclick="showUsers()" class="nav-link">
+                    <i class="fas fa-user-shield"></i> Usuarios
+                </a></li>
+                <li><a href="#" onclick="showWallets()" class="nav-link">
+                    <i class="fas fa-wallet"></i> Carteras
+                </a></li>
+                <li><a href="#" onclick="showCash()" class="nav-link">
+                    <i class="fas fa-cash-register"></i> Caja
+                </a></li>
+                <li><a href="#" onclick="showCurrency()" class="nav-link">
+                    <i class="fas fa-coins"></i> Moneda
+                </a></li>
+                <li><a href="#" onclick="showLoans()" class="nav-link">
+                    <i class="fas fa-hand-holding-usd"></i> Préstamos
+                </a></li>
+                <li><a href="#" onclick="showCollections()" class="nav-link">
+                    <i class="fas fa-money-bill-wave"></i> Cobros
+                </a></li>
+                <li><a href="#" onclick="showReports()" class="nav-link">
+                    <i class="fas fa-chart-bar"></i> Reportes
+                </a></li>
+                <li><a href="#" onclick="showBackup()" class="nav-link">
+                    <i class="fas fa-database"></i> Respaldos
+                </a></li>
+            </ul>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <div id="dashboard" class="content-section active">
+                <h2>Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-clients">0</h3>
+                            <p>Total Clientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="active-loans">0</h3>
+                            <p>Préstamos Activos</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="today-collections">$0</h3>
+                            <p>Cobros Hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="overdue-loans">0</h3>
+                            <p>Préstamos Vencidos</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="overdue-section">
+                    <h3>Préstamos Vencidos</h3>
+                    <div class="table-container">
+                        <div class="table-content">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th>Préstamo</th>
+                                        <th>Monto Vencido</th>
+                                        <th>Días de Atraso</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="overdue-dashboard-body">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secciones de contenido (se mostrarán dinámicamente) -->
+            <div id="clients" class="content-section"></div>
+            <div id="users" class="content-section"></div>
+            <div id="wallets" class="content-section"></div>
+            <div id="cash" class="content-section"></div>
+            <div id="currency" class="content-section"></div>
+            <div id="loans" class="content-section"></div>
+            <div id="collections" class="content-section"></div>
+            <div id="reports" class="content-section"></div>
+            <div id="backup" class="content-section"></div>
+        </main>
+    </div>
+
+    <!-- Modales -->
+    <div id="modal-overlay" class="modal-overlay"></div>
+
+    <script src="js/app.js"></script>
+    <script src="js/modules.js"></script>
+    <script src="js/clients.js"></script>
+    <script src="js/users.js"></script>
+    <script src="js/loans.js"></script>
+    <script src="js/collections.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/backup.js"></script>
+</body>
+</html>
