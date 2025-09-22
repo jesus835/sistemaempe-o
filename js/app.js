@@ -495,6 +495,51 @@ function logout() {
     }
 }
 
+// Funciones para menú móvil
+function toggleMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    
+    if (sidebar.classList.contains('open')) {
+        closeMobileMenu();
+    } else {
+        openMobileMenu();
+    }
+}
+
+function openMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+}
+
+function closeMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+    document.body.style.overflow = ''; // Restaurar scroll del body
+}
+
+// Cerrar menú móvil cuando se selecciona una opción
+function closeMobileMenuOnClick() {
+    // Cerrar menú móvil después de hacer clic en un enlace
+    setTimeout(() => {
+        closeMobileMenu();
+    }, 100);
+}
+
+// Cerrar menú móvil con tecla Escape
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeMobileMenu();
+    }
+});
+
 // Inicializar aplicación
 let app;
 document.addEventListener('DOMContentLoaded', () => {
