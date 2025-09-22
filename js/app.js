@@ -109,13 +109,19 @@ class AszoLoandApp {
     }
 
     setActiveNav(activeLink) {
-        const sectionName = activeLink.getAttribute('onclick').match(/show(\w+)/)[1];
+        let sectionName = '';
+        if (activeLink && activeLink.getAttribute('onclick')) {
+            const match = activeLink.getAttribute('onclick').match(/show(\w+)/);
+            sectionName = match ? match[1] : '';
+        }
         console.log(`📱 Navegando a sección: ${sectionName}`);
         
         document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active');
         });
-        activeLink.classList.add('active');
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
 
         // Ocultar todas las secciones
         document.querySelectorAll('.content-section').forEach(section => {
@@ -303,14 +309,14 @@ class AszoLoandApp {
 // Funciones globales para navegación
 function showDashboard() {
     console.log('🏠 Navegando a Dashboard');
-    const link = document.querySelector('[onclick="showDashboard()"]');
+    const link = document.querySelector('a[onclick*="showDashboard()"]');
     app.setActiveNav(link);
     app.loadDashboard();
 }
 
 function showClients() {
     console.log('👥 Navegando a Clientes');
-    const link = document.querySelector('[onclick="showClients()"]');
+    const link = document.querySelector('a[onclick*="showClients()"]');
     app.setActiveNav(link);
     
     // Cargar contenido después de activar la sección
@@ -326,7 +332,7 @@ function showClients() {
 
 function showUsers() {
     console.log('👤 Navegando a Usuarios');
-    const link = document.querySelector('[onclick="showUsers()"]');
+    const link = document.querySelector('a[onclick*="showUsers()"]');
     app.setActiveNav(link);
     
     setTimeout(() => {
@@ -341,7 +347,7 @@ function showUsers() {
 
 function showWallets() {
     console.log('💼 Navegando a Carteras');
-    const link = document.querySelector('[onclick="showWallets()"]');
+    const link = document.querySelector('a[onclick*="showWallets()"]');
     app.setActiveNav(link);
     
     setTimeout(() => {
@@ -356,7 +362,7 @@ function showWallets() {
 
 function showCash() {
     console.log('💰 Navegando a Caja');
-    const link = document.querySelector('[onclick="showCash()"]');
+    const link = document.querySelector('a[onclick*="showCash()"]');
     app.setActiveNav(link);
     
     setTimeout(() => {
@@ -371,7 +377,7 @@ function showCash() {
 
 function showCurrency() {
     console.log('💱 Navegando a Moneda');
-    const link = document.querySelector('[onclick="showCurrency()"]');
+    const link = document.querySelector('a[onclick*="showCurrency()"]');
     app.setActiveNav(link);
     
     setTimeout(() => {
@@ -386,7 +392,7 @@ function showCurrency() {
 
 function showLoans() {
     console.log('🏦 Navegando a Préstamos');
-    const link = document.querySelector('[onclick="showLoans()"]');
+    const link = document.querySelector('a[onclick*="showLoans()"]');
     app.setActiveNav(link);
     
     setTimeout(() => {
@@ -401,7 +407,7 @@ function showLoans() {
 
 function showCollections() {
     console.log('💵 Navegando a Cobros');
-    const link = document.querySelector('[onclick="showCollections()"]');
+    const link = document.querySelector('a[onclick*="showCollections()"]');
     app.setActiveNav(link);
     
     setTimeout(() => {
@@ -416,7 +422,7 @@ function showCollections() {
 
 function showReports() {
     console.log('📊 Navegando a Reportes');
-    const link = document.querySelector('[onclick="showReports()"]');
+    const link = document.querySelector('a[onclick*="showReports()"]');
     app.setActiveNav(link);
     
     setTimeout(() => {
@@ -431,7 +437,7 @@ function showReports() {
 
 function showBackup() {
     console.log('💾 Navegando a Respaldos');
-    const link = document.querySelector('[onclick="showBackup()"]');
+    const link = document.querySelector('a[onclick*="showBackup()"]');
     app.setActiveNav(link);
     
     setTimeout(() => {
