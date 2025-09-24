@@ -435,6 +435,21 @@ function showReports() {
     }, 100);
 }
 
+function showContracts() {
+    console.log('📄 Navegando a Contratos');
+    const link = document.querySelector('a[onclick*="showContracts()"]');
+    app.setActiveNav(link);
+    
+    setTimeout(() => {
+        if (typeof loadContractsModule === 'function') {
+            console.log('📄 Cargando módulo de contratos...');
+            loadContractsModule();
+        } else {
+            console.log('❌ Función loadContractsModule no encontrada');
+        }
+    }, 100);
+}
+
 function showBackup() {
     console.log('💾 Navegando a Respaldos');
     const link = document.querySelector('a[onclick*="showBackup()"]');

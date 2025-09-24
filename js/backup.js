@@ -375,6 +375,8 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+
+
 // Agregar estilos CSS para respaldos
 const backupStyles = `
     <style>
@@ -482,6 +484,27 @@ const backupStyles = `
         .badge-success {
             background: #dcfce7;
             color: #166534;
+        }
+        
+        .btn-info {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-info:hover {
+            background: #0284c7;
+            transform: translateY(-1px);
+        }
+        
+        .btn-info i {
+            margin-right: 6px;
         }
     </style>
 `;
