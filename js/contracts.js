@@ -184,147 +184,83 @@ function createLoanContract() {
         return;
     }
     
-    // Crear contrato de préstamo
-    const printWindow = window.open('', '_blank');
+    // Cerrar modal
+    app.closeModal();
     
-    if (!printWindow) {
-        alert('No se pudo abrir la ventana de impresión. Verifica que los pop-ups estén habilitados.');
-        return;
-    }
-    
+    // Mostrar contrato en la página actual
+    const section = document.getElementById('contracts');
     const today = new Date().toLocaleDateString('es-ES');
     const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
     
-    const contractHTML = `
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <title>Contrato de Préstamo - ${client.name}</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 40px;
-                    line-height: 1.6;
-                    color: #333;
-                }
-                .header {
-                    text-align: center;
-                    border-bottom: 2px solid #333;
-                    padding-bottom: 20px;
-                    margin-bottom: 30px;
-                }
-                .header h1 {
-                    font-size: 24px;
-                    margin: 0;
-                    color: #2c3e50;
-                }
-                .section {
-                    margin: 20px 0;
-                }
-                .section h3 {
-                    background: #2c3e50;
-                    color: white;
-                    padding: 10px;
-                    margin: 0 0 15px 0;
-                    font-size: 16px;
-                }
-                .info-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 20px;
-                    margin: 15px 0;
-                }
-                .info-item {
-                    margin: 10px 0;
-                }
-                .info-label {
-                    font-weight: bold;
-                    color: #2c3e50;
-                }
-                .signature-section {
-                    margin-top: 50px;
-                    border-top: 1px solid #ddd;
-                    padding-top: 20px;
-                }
-                .signature-line {
-                    display: flex;
-                    justify-content: space-between;
-                    margin: 40px 0;
-                }
-                .signature-box {
-                    width: 45%;
-                    text-align: center;
-                }
-                .signature-line-element {
-                    border-bottom: 1px solid #333;
-                    height: 50px;
-                    margin-bottom: 10px;
-                }
-                @media print {
-                    body { margin: 20px; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
+    section.innerHTML = `
+        <div class="contract-actions">
+            <button class="btn btn-secondary" onclick="loadContractsModule()">
+                <i class="fas fa-arrow-left"></i> Volver a Contratos
+            </button>
+            <button class="btn btn-primary" onclick="printContract()">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+        </div>
+        
+        <div class="contract-content">
+            <div class="contract-header">
                 <h1>${businessName}</h1>
                 <h2>CONTRATO DE PRÉSTAMO</h2>
             </div>
             
-            <div class="section">
+            <div class="contract-section">
                 <h3>INFORMACIÓN DEL CLIENTE</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Nombre Completo:</span><br>
+                <div class="contract-info-grid">
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Nombre Completo:</span><br>
                         ${client.name}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Documento:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Documento:</span><br>
                         ${client.document || 'No especificado'}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Dirección:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Dirección:</span><br>
                         ${client.address || 'No especificada'}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Teléfono:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Teléfono:</span><br>
                         ${client.phone || 'No especificado'}
                     </div>
                 </div>
             </div>
             
-            <div class="section">
+            <div class="contract-section">
                 <h3>DETALLES DEL PRÉSTAMO</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Monto del Préstamo:</span><br>
+                <div class="contract-info-grid">
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Monto del Préstamo:</span><br>
                         $${loan.amount}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Tipo de Préstamo:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Tipo de Préstamo:</span><br>
                         ${loan.type}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Tasa de Interés:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Tasa de Interés:</span><br>
                         ${loan.interestRate}%
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Plazo:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Plazo:</span><br>
                         ${loan.term} ${loan.termType || 'meses'}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Fecha de Contrato:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Fecha de Contrato:</span><br>
                         ${today}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Próximo Pago:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Próximo Pago:</span><br>
                         ${loan.nextPayment ? new Date(loan.nextPayment).toLocaleDateString('es-ES') : 'No especificado'}
                     </div>
                 </div>
             </div>
             
-            <div class="section">
+            <div class="contract-section">
                 <h3>TÉRMINOS Y CONDICIONES</h3>
                 <p><strong>1. OBLIGACIONES DEL PRESTATARIO:</strong></p>
                 <p>El prestatario se compromete a pagar el monto del préstamo de $${loan.amount} más los intereses correspondientes del ${loan.interestRate}% anual.</p>
@@ -339,18 +275,18 @@ function createLoanContract() {
                 <p>Este contrato se regirá por las leyes de la República y cualquier disputa será resuelta en los tribunales competentes.</p>
             </div>
             
-            <div class="signature-section">
+            <div class="contract-signature-section">
                 <h3>FIRMAS</h3>
                 <p>En constancia de lo anterior, las partes firman el presente contrato en la fecha indicada.</p>
                 
-                <div class="signature-line">
-                    <div class="signature-box">
-                        <div class="signature-line-element"></div>
+                <div class="contract-signature-line">
+                    <div class="contract-signature-box">
+                        <div class="contract-signature-line-element"></div>
                         <strong>PRESTATARIO</strong><br>
                         ${client.name}
                     </div>
-                    <div class="signature-box">
-                        <div class="signature-line-element"></div>
+                    <div class="contract-signature-box">
+                        <div class="contract-signature-line-element"></div>
                         <strong>PRESTAMISTA</strong><br>
                         ${businessName}
                     </div>
@@ -362,31 +298,14 @@ function createLoanContract() {
                 </div>
             </div>
             
-            <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #7f8c8d;">
+            <div class="contract-footer">
                 <p>Contrato generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p>
             </div>
-            
-            <script>
-                window.onload = function() {
-                    setTimeout(() => {
-                        window.print();
-                    }, 500);
-                };
-            </script>
-        </body>
-        </html>
+        </div>
     `;
-    
-    printWindow.document.write(contractHTML);
-    printWindow.document.close();
     
     // Guardar en historial
     saveContractToHistory('préstamo', client.name, `$${loan.amount}`);
-    
-    // Cerrar modal después de generar el contrato
-    setTimeout(() => {
-        app.closeModal();
-    }, 100);
 }
 
 function createPawnContract() {
@@ -409,162 +328,92 @@ function createPawnContract() {
         return;
     }
     
-    // Crear contrato de empeño
-    const printWindow = window.open('', '_blank');
+    // Cerrar modal
+    app.closeModal();
     
-    if (!printWindow) {
-        alert('No se pudo abrir la ventana de impresión. Verifica que los pop-ups estén habilitados.');
-        return;
-    }
-    
+    // Mostrar contrato en la página actual
+    const section = document.getElementById('contracts');
     const today = new Date().toLocaleDateString('es-ES');
     const dueDate = new Date(Date.now() + (term * 24 * 60 * 60 * 1000)).toLocaleDateString('es-ES');
     const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
     
-    const contractHTML = `
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <title>Contrato de Empeño - ${client.name}</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 40px;
-                    line-height: 1.6;
-                    color: #333;
-                }
-                .header {
-                    text-align: center;
-                    border-bottom: 2px solid #333;
-                    padding-bottom: 20px;
-                    margin-bottom: 30px;
-                }
-                .header h1 {
-                    font-size: 24px;
-                    margin: 0;
-                    color: #e67e22;
-                }
-                .section {
-                    margin: 20px 0;
-                }
-                .section h3 {
-                    background: #e67e22;
-                    color: white;
-                    padding: 10px;
-                    margin: 0 0 15px 0;
-                    font-size: 16px;
-                }
-                .info-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 20px;
-                    margin: 15px 0;
-                }
-                .info-item {
-                    margin: 10px 0;
-                }
-                .info-label {
-                    font-weight: bold;
-                    color: #2c3e50;
-                }
-                .item-description {
-                    background: #f8f9fa;
-                    padding: 15px;
-                    border-left: 4px solid #e67e22;
-                    margin: 15px 0;
-                }
-                .signature-section {
-                    margin-top: 50px;
-                    border-top: 1px solid #ddd;
-                    padding-top: 20px;
-                }
-                .signature-line {
-                    display: flex;
-                    justify-content: space-between;
-                    margin: 40px 0;
-                }
-                .signature-box {
-                    width: 45%;
-                    text-align: center;
-                }
-                .signature-line-element {
-                    border-bottom: 1px solid #333;
-                    height: 50px;
-                    margin-bottom: 10px;
-                }
-                @media print {
-                    body { margin: 20px; }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
+    section.innerHTML = `
+        <div class="contract-actions">
+            <button class="btn btn-secondary" onclick="loadContractsModule()">
+                <i class="fas fa-arrow-left"></i> Volver a Contratos
+            </button>
+            <button class="btn btn-primary" onclick="printContract()">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+        </div>
+        
+        <div class="contract-content">
+            <div class="contract-header">
                 <h1>${businessName}</h1>
                 <h2>CONTRATO DE EMPEÑO</h2>
             </div>
             
-            <div class="section">
+            <div class="contract-section">
                 <h3>INFORMACIÓN DEL CLIENTE</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Nombre Completo:</span><br>
+                <div class="contract-info-grid">
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Nombre Completo:</span><br>
                         ${client.name}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Documento:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Documento:</span><br>
                         ${client.document || 'No especificado'}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Dirección:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Dirección:</span><br>
                         ${client.address || 'No especificada'}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Teléfono:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Teléfono:</span><br>
                         ${client.phone || 'No especificado'}
                     </div>
                 </div>
             </div>
             
-            <div class="section">
+            <div class="contract-section">
                 <h3>DETALLES DEL EMPEÑO</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Monto del Empeño:</span><br>
+                <div class="contract-info-grid">
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Monto del Empeño:</span><br>
                         $${amount}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Artículo Empeñado:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Artículo Empeñado:</span><br>
                         ${item}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Tasa de Interés:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Tasa de Interés:</span><br>
                         ${interest}% mensual
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Plazo:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Plazo:</span><br>
                         ${term} días
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Fecha de Vencimiento:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Fecha de Vencimiento:</span><br>
                         ${dueDate}
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Fecha de Contrato:</span><br>
+                    <div class="contract-info-item">
+                        <span class="contract-info-label">Fecha de Contrato:</span><br>
                         ${today}
                     </div>
                 </div>
             </div>
             
-            <div class="section">
+            <div class="contract-section">
                 <h3>DESCRIPCIÓN DEL ARTÍCULO</h3>
-                <div class="item-description">
+                <div class="contract-item-description">
                     <p><strong>Artículo:</strong> ${item}</p>
                     <p><strong>Descripción:</strong> ${description || 'No se proporcionó descripción adicional'}</p>
                 </div>
             </div>
             
-            <div class="section">
+            <div class="contract-section">
                 <h3>TÉRMINOS Y CONDICIONES</h3>
                 <p><strong>1. OBJETO DEL EMPEÑO:</strong></p>
                 <p>El cliente empeña el artículo "${item}" por un monto de $${amount} con una tasa de interés del ${interest}% mensual.</p>
@@ -585,18 +434,18 @@ function createPawnContract() {
                 <p>Este contrato se regirá por las leyes de la República y cualquier disputa será resuelta en los tribunales competentes.</p>
             </div>
             
-            <div class="signature-section">
+            <div class="contract-signature-section">
                 <h3>FIRMAS</h3>
                 <p>En constancia de lo anterior, las partes firman el presente contrato de empeño en la fecha indicada.</p>
                 
-                <div class="signature-line">
-                    <div class="signature-box">
-                        <div class="signature-line-element"></div>
+                <div class="contract-signature-line">
+                    <div class="contract-signature-box">
+                        <div class="contract-signature-line-element"></div>
                         <strong>EMPEÑANTE</strong><br>
                         ${client.name}
                     </div>
-                    <div class="signature-box">
-                        <div class="signature-line-element"></div>
+                    <div class="contract-signature-box">
+                        <div class="contract-signature-line-element"></div>
                         <strong>EMPEÑISTA</strong><br>
                         ${businessName}
                     </div>
@@ -608,31 +457,14 @@ function createPawnContract() {
                 </div>
             </div>
             
-            <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #7f8c8d;">
+            <div class="contract-footer">
                 <p>Contrato de empeño generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p>
             </div>
-            
-            <script>
-                window.onload = function() {
-                    setTimeout(() => {
-                        window.print();
-                    }, 500);
-                };
-            </script>
-        </body>
-        </html>
+        </div>
     `;
-    
-    printWindow.document.write(contractHTML);
-    printWindow.document.close();
     
     // Guardar en historial
     saveContractToHistory('empeño', client.name, item);
-    
-    // Cerrar modal después de generar el contrato
-    setTimeout(() => {
-        app.closeModal();
-    }, 100);
 }
 
 function getContractsHistory() {
@@ -672,6 +504,22 @@ function deleteContract(contractId) {
         localStorage.setItem('aszoLoand_contractsHistory', JSON.stringify(filteredHistory));
         loadContractsModule();
         alert('Contrato eliminado del historial exitosamente');
+    }
+}
+
+function printContract() {
+    // Ocultar botones de acción antes de imprimir
+    const contractActions = document.querySelector('.contract-actions');
+    if (contractActions) {
+        contractActions.style.display = 'none';
+    }
+    
+    // Imprimir
+    window.print();
+    
+    // Mostrar botones de acción después de imprimir
+    if (contractActions) {
+        contractActions.style.display = 'block';
     }
 }
 
