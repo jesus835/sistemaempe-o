@@ -19,6 +19,8 @@ class AszoLoandApp {
             collections: JSON.parse(localStorage.getItem('aszoLoand_collections')) || [
                 { id: 1, loanId: 1, clientId: 1, userId: 1, date: '2024-01-01', amount: 519.24, principal: 444.24, capital: 444.24, interest: 41.67, insurance: 50, tax: 25, total: 519.24, type: 'full', paymentMethod: 'cash', notes: 'Primera cuota', createdAt: '2024-01-01T00:00:00.000Z' }
             ],
+            savingsAccounts: JSON.parse(localStorage.getItem('aszoLoand_savingsAccounts')) || [],
+            savingsTransactions: JSON.parse(localStorage.getItem('aszoLoand_savingsTransactions')) || [],
             currencies: [
                 { id: 1, code: 'USD', name: 'Dólar Americano', symbol: '$', rate: 1 },
                 { id: 2, code: 'EUR', name: 'Euro', symbol: '€', rate: 0.85 },
@@ -32,7 +34,8 @@ class AszoLoandApp {
                 address: 'Dirección de la empresa',
                 phone: '+1 234 567 8900',
                 email: 'info@aszoloand.com',
-                logo: 'images/logo.png'
+                logo: 'images/logo.png',
+                brand: 'default' // default | respaldo_xpress | acredit_jireh | jhire
             }
         };
         this.init();
@@ -186,6 +189,8 @@ class AszoLoandApp {
         localStorage.setItem('aszoLoand_users', JSON.stringify(this.data.users));
         localStorage.setItem('aszoLoand_loans', JSON.stringify(this.data.loans));
         localStorage.setItem('aszoLoand_collections', JSON.stringify(this.data.collections));
+        localStorage.setItem('aszoLoand_savingsAccounts', JSON.stringify(this.data.savingsAccounts));
+        localStorage.setItem('aszoLoand_savingsTransactions', JSON.stringify(this.data.savingsTransactions));
         localStorage.setItem('aszoLoand_currency', JSON.stringify(this.data.currentCurrency));
         localStorage.setItem('aszoLoand_config', JSON.stringify(this.data.config));
         if (this.currentUser) {
@@ -390,6 +395,21 @@ function showCurrency() {
     }, 100);
 }
 
+function showSavings() {
+    console.log('🐖 Navegando a Ahorros');
+    const link = document.querySelector('a[onclick*="showSavings()"]');
+    app.setActiveNav(link);
+    
+    setTimeout(() => {
+        if (typeof loadSavingsModule === 'function') {
+            console.log('📋 Cargando módulo de ahorros...');
+            loadSavingsModule();
+        } else {
+            console.log('❌ Función loadSavingsModule no encontrada');
+        }
+    }, 100);
+}
+
 function showLoans() {
     console.log('🏦 Navegando a Préstamos');
     const link = document.querySelector('a[onclick*="showLoans()"]');
@@ -450,6 +470,21 @@ function showContracts() {
     }, 100);
 }
 
+function showInvestments() {
+    console.log('📈 Navegando a Inversiones');
+    const link = document.querySelector('a[onclick*="showInvestments()"]');
+    app.setActiveNav(link);
+    
+    setTimeout(() => {
+        if (typeof loadInvestmentsModule === 'function') {
+            console.log('📋 Cargando módulo de inversiones...');
+            loadInvestmentsModule();
+        } else {
+            console.log('❌ Función loadInvestmentsModule no encontrada');
+        }
+    }, 100);
+}
+
 function showBackup() {
     console.log('💾 Navegando a Respaldos');
     const link = document.querySelector('a[onclick*="showBackup()"]');
@@ -489,6 +524,15 @@ function showConfig() {
                     <label for="logo">Logo (URL)</label>
                     <input type="url" id="logo" value="${app.data.config.logo}">
                 </div>
+                <div class="form-group">
+                    <label for="brand">Marca/Empresa</label>
+                    <select id="brand">
+                        <option value="default" ${app.data.config.brand === 'default' ? 'selected' : ''}>Personalizada</option>
+                        <option value="respaldo_xpress" ${app.data.config.brand === 'respaldo_xpress' ? 'selected' : ''}>Respaldo Xpress Casa de Empeño</option>
+                        <option value="acredit_jireh" ${app.data.config.brand === 'acredit_jireh' ? 'selected' : ''}>Grupo Empresarial de Inversiones Financieras Acredit Jireh</option>
+                        <option value="jhire" ${app.data.config.brand === 'jhire' ? 'selected' : ''}>Corporación Financiera e Inversiones Jhire</option>
+                    </select>
+                </div>
                 <button type="submit" class="btn btn-primary">Guardar Configuración</button>
             </form>
         </div>
@@ -501,7 +545,8 @@ function showConfig() {
             address: document.getElementById('address').value,
             phone: document.getElementById('phone').value,
             email: document.getElementById('email').value,
-            logo: document.getElementById('logo').value
+            logo: document.getElementById('logo').value,
+            brand: document.getElementById('brand').value
         };
         app.saveData();
         app.closeModal();

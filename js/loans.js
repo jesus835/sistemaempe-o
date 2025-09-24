@@ -334,6 +334,10 @@ function saveLoan() {
     }
     
     app.saveData();
+    if (!loanId) {
+        // Recibo de apertura de préstamo
+        showLoanOpeningReceipt(loanData);
+    }
     app.closeModal();
     loadLoansModule();
     
@@ -447,6 +451,7 @@ function viewLoanDetails(loanId) {
                                     <th>Seguro</th>
                                     <th>Impuesto</th>
                                     <th>Total</th>
+                                    <th>Recibo</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -459,6 +464,11 @@ function viewLoanDetails(loanId) {
                                         <td>${app.formatCurrency(payment.insurance || 0)}</td>
                                         <td>${app.formatCurrency(payment.tax || 0)}</td>
                                         <td>${app.formatCurrency(payment.total)}</td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm" onclick="openPaymentReceipt(${payment.id})">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -567,6 +577,8 @@ function processPayment() {
     
     if (loan.remainingAmount <= 0) {
         loan.status = 'paid';
+        // Recibo de liquidación total
+        showLoanLiquidationReceipt(loan);
     } else {
         // Calcular próximo pago
         loan.nextPayment = calculateNextPaymentDate(paymentDate, loan.paymentFrequency);
@@ -579,10 +591,155 @@ function processPayment() {
     app.data.collections.push(payment);
     
     app.saveData();
+
+    // Mostrar/Imprimir recibo
+    showPaymentReceipt(payment, loan);
+
     app.closeModal();
     loadLoansModule();
     alert('Pago registrado exitosamente');
 }
+function showPaymentReceipt(payment, loan) {
+    const client = app.data.clients.find(c => c.id === payment.clientId);
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    const receiptHtml = `
+        <div class="contract-actions">
+            <button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button>
+        </div>
+        <div class="contract-content">
+            <div class="contract-header">
+                <h1>${businessName}</h1>
+                <h2>RECIBO DE PAGO</h2>
+            </div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Recibo #:</span><br>${payment.id}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Fecha:</span><br>${app.formatDate(payment.date)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Cliente:</span><br>${client ? client.name : '-'}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Préstamo #:</span><br>${loan.id}</div>
+                </div>
+            </div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Capital:</span><br>${app.formatCurrency(payment.capital)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Interés:</span><br>${app.formatCurrency(payment.interest)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Seguro:</span><br>${app.formatCurrency(payment.insurance || 0)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Impuesto:</span><br>${app.formatCurrency(payment.tax || 0)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Total:</span><br>${app.formatCurrency(payment.total)}</div>
+                </div>
+            </div>
+            ${payment.notes ? `<div class="contract-section"><p><strong>Notas:</strong> ${payment.notes}</p></div>` : ''}
+            <div class="contract-footer">
+                <p>Recibo generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p>
+            </div>
+        </div>
+    `;
+    const section = document.getElementById('collections');
+    if (section) {
+        section.innerHTML = receiptHtml;
+    } else {
+        app.showModal('Recibo de Pago', receiptHtml);
+    }
+}
+
+function showLoanOpeningReceipt(loan) {
+    const client = app.data.clients.find(c => c.id === loan.clientId);
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    const html = `
+        <div class="contract-actions"><button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button></div>
+        <div class="contract-content">
+            <div class="contract-header"><h1>${businessName}</h1><h2>APERTURA DE PRÉSTAMO</h2></div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Cliente:</span><br>${client ? client.name : '-'}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Préstamo #:</span><br>${loan.id}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Monto:</span><br>${app.formatCurrency(loan.amount)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Interés:</span><br>${loan.interestRate}%</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Plazo:</span><br>${loan.term} ${loan.termType}</div>
+                </div>
+            </div>
+            <div class="contract-footer"><p>Generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p></div>
+        </div>
+    `;
+    const section = document.getElementById('loans');
+    section.innerHTML = html;
+}
+
+function showLoanLiquidationReceipt(loan) {
+    const client = app.data.clients.find(c => c.id === loan.clientId);
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    const html = `
+        <div class="contract-actions"><button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button></div>
+        <div class="contract-content">
+            <div class="contract-header"><h1>${businessName}</h1><h2>LIQUIDACIÓN DE PRÉSTAMO</h2></div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Cliente:</span><br>${client ? client.name : '-'}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Préstamo #:</span><br>${loan.id}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Total Pagado:</span><br>${app.formatCurrency(loan.totalPayment)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Fecha:</span><br>${new Date().toLocaleDateString('es-ES')}</div>
+                </div>
+            </div>
+            <div class="contract-footer"><p>Generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p></div>
+        </div>
+    `;
+    const section = document.getElementById('loans');
+    section.innerHTML = html;
+}
+
+function showLoanReprogramReceipt(loan, reason) {
+    const client = app.data.clients.find(c => c.id === loan.clientId);
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    const html = `
+        <div class="contract-actions"><button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button></div>
+        <div class="contract-content">
+            <div class="contract-header"><h1>${businessName}</h1><h2>REPROGRAMACIÓN DE PRÉSTAMO</h2></div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Cliente:</span><br>${client ? client.name : '-'}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Préstamo #:</span><br>${loan.id}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Nueva tasa:</span><br>${loan.interestRate}%</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Nuevo plazo:</span><br>${loan.term} ${loan.termType}</div>
+                </div>
+                ${reason ? `<p><strong>Motivo:</strong> ${reason}</p>` : ''}
+            </div>
+            <div class="contract-footer"><p>Generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p></div>
+        </div>
+    `;
+    const section = document.getElementById('loans');
+    section.innerHTML = html;
+}
+
+function showLoanCancellationReceipt(loan) {
+    const client = app.data.clients.find(c => c.id === loan.clientId);
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    const html = `
+        <div class="contract-actions"><button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button></div>
+        <div class="contract-content">
+            <div class="contract-header"><h1>${businessName}</h1><h2>CANCELACIÓN DE PRÉSTAMO</h2></div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Cliente:</span><br>${client ? client.name : '-'}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Préstamo #:</span><br>${loan.id}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Estado:</span><br>Cancelado</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Fecha:</span><br>${new Date().toLocaleDateString('es-ES')}</div>
+                </div>
+            </div>
+            <div class="contract-footer"><p>Generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p></div>
+        </div>
+    `;
+    const section = document.getElementById('loans');
+    section.innerHTML = html;
+}
+
+function openPaymentReceipt(paymentId) {
+    const payment = (app.data.collections || []).find(p => p.id === paymentId);
+    if (!payment) return;
+    const loan = (app.data.loans || []).find(l => l.id === payment.loanId);
+    if (!loan) return;
+    showPaymentReceipt(payment, loan);
+}
+
 
 function reprogramLoan(loanId) {
     const loan = app.data.loans.find(l => l.id === loanId);
@@ -648,6 +805,8 @@ function reprogramLoan(loanId) {
         loan.notes = (loan.notes || '') + `\n\nReprogramado el ${new Date().toLocaleDateString()}: ${reason}`;
         
         app.saveData();
+        // Recibo de reprogramación
+        showLoanReprogramReceipt(loan, reason);
         app.closeModal();
         loadLoansModule();
         alert('Préstamo reprogramado exitosamente');
@@ -664,6 +823,8 @@ function cancelLoan(loanId) {
         loan.status = 'cancelled';
         loan.cancelledAt = new Date().toISOString();
         app.saveData();
+        // Recibo de cancelación
+        showLoanCancellationReceipt(loan);
         loadLoansModule();
         alert('Préstamo cancelado exitosamente');
     }

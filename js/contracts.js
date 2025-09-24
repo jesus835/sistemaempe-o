@@ -34,6 +34,32 @@ function loadContractsModule() {
                     </button>
                 </div>
             </div>
+
+			<div class="action-card">
+				<div class="action-icon mortgage-contract">
+					<i class="fas fa-house-user"></i>
+				</div>
+				<div class="action-info">
+					<h3>Contrato Hipotecario</h3>
+					<p>Genera contratos de préstamo con garantía hipotecaria</p>
+					<button class="btn btn-primary" onclick="generateMortgageContract()">
+						<i class="fas fa-file-signature"></i> Generar Contrato
+					</button>
+				</div>
+			</div>
+
+			<div class="action-card">
+				<div class="action-icon loan-contract" style="background:#8b5cf6;">
+					<i class="fas fa-chart-pie"></i>
+				</div>
+				<div class="action-info">
+					<h3>Contrato de Inversión</h3>
+					<p>Genera contratos para inversiones registradas</p>
+					<button class="btn btn-primary" onclick="openInvestmentContractModal()">
+						<i class="fas fa-file-contract"></i> Generar Contrato
+					</button>
+				</div>
+			</div>
         </div>
 
         <div class="contracts-history">
@@ -168,6 +194,223 @@ function generatePawnContract() {
     app.showModal('Generar Contrato de Empeño', modalContent);
 }
 
+function generateMortgageContract() {
+	console.log('🏠 Generando contrato hipotecario...');
+
+	// Verificar clientes y préstamos disponibles (opcional)
+	const modalContent = `
+		<div class="form-container">
+			<h3>Generar Contrato Hipotecario</h3>
+			<p>Ingresa los datos para el contrato con garantía hipotecaria:</p>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="mortgage-client">Cliente *</label>
+					<select id="mortgage-client" required>
+						<option value="">Seleccionar Cliente</option>
+						${app.data.clients.map(client => `
+							<option value="${client.id}">${client.name} - ${client.email}</option>
+						`).join('')}
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="mortgage-amount">Monto del Préstamo *</label>
+					<input type="number" id="mortgage-amount" step="0.01" min="0" required placeholder="0.00">
+				</div>
+			</div>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="mortgage-interest">Tasa de Interés (%) *</label>
+					<input type="number" id="mortgage-interest" step="0.01" min="0" max="100" required placeholder="12.00">
+				</div>
+				<div class="form-group">
+					<label for="mortgage-term">Plazo (meses) *</label>
+					<input type="number" id="mortgage-term" min="1" required placeholder="120">
+				</div>
+			</div>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="mortgage-property-address">Dirección del Inmueble *</label>
+					<input type="text" id="mortgage-property-address" required placeholder="Calle, No., Zona, Ciudad">
+				</div>
+			</div>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="mortgage-property-value">Valor del Inmueble *</label>
+					<input type="number" id="mortgage-property-value" step="0.01" min="0" required placeholder="0.00">
+				</div>
+				<div class="form-group">
+					<label for="mortgage-ltv">Porcentaje de Financiamiento (LTV %)</label>
+					<input type="number" id="mortgage-ltv" step="0.01" min="0" max="100" placeholder="Ej. 70">
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label for="mortgage-notes">Cláusulas adicionales</label>
+				<textarea id="mortgage-notes" rows="3" placeholder="Cláusulas particulares del contrato"></textarea>
+			</div>
+
+			<div class="form-actions">
+				<button type="button" class="btn btn-secondary" onclick="app.closeModal()">Cancelar</button>
+				<button type="button" class="btn btn-primary" onclick="createMortgageContract()">
+					<i class="fas fa-file-signature"></i> Generar Contrato
+				</button>
+			</div>
+		</div>
+	`;
+
+	app.showModal('Generar Contrato Hipotecario', modalContent);
+}
+
+function createMortgageContract() {
+	const clientId = document.getElementById('mortgage-client').value;
+	const amount = document.getElementById('mortgage-amount').value;
+	const interest = document.getElementById('mortgage-interest').value;
+	const termMonths = document.getElementById('mortgage-term').value;
+	const propertyAddress = document.getElementById('mortgage-property-address').value;
+	const propertyValue = document.getElementById('mortgage-property-value').value;
+	const ltv = document.getElementById('mortgage-ltv').value;
+	const notes = document.getElementById('mortgage-notes').value;
+
+	if (!clientId || !amount || !interest || !termMonths || !propertyAddress || !propertyValue) {
+		alert('Por favor completa todos los campos obligatorios');
+		return;
+	}
+
+	const client = app.data.clients.find(c => c.id == clientId);
+	if (!client) {
+		alert('Cliente no encontrado');
+		return;
+	}
+
+	app.closeModal();
+
+	const section = document.getElementById('contracts');
+	const today = new Date().toLocaleDateString('es-ES');
+	const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+
+	section.innerHTML = `
+		<div class="contract-actions">
+			<button class="btn btn-secondary" onclick="loadContractsModule()">
+				<i class="fas fa-arrow-left"></i> Volver a Contratos
+			</button>
+			<button class="btn btn-primary" onclick="printContract()">
+				<i class="fas fa-print"></i> Imprimir
+			</button>
+		</div>
+
+		<div class="contract-content">
+			<div class="contract-header">
+				<h1>${businessName}</h1>
+				<h2>CONTRATO DE PRÉSTAMO CON GARANTÍA HIPOTECARIA</h2>
+			</div>
+
+			<div class="contract-section">
+				<h3>INFORMACIÓN DEL CLIENTE</h3>
+				<div class="contract-info-grid">
+					<div class="contract-info-item">
+						<span class="contract-info-label">Nombre Completo:</span><br>
+						${client.name}
+					</div>
+					<div class="contract-info-item">
+						<span class="contract-info-label">Documento:</span><br>
+						${client.document || 'No especificado'}
+					</div>
+					<div class="contract-info-item">
+						<span class="contract-info-label">Dirección:</span><br>
+						${client.address || 'No especificada'}
+					</div>
+					<div class="contract-info-item">
+						<span class="contract-info-label">Teléfono:</span><br>
+						${client.phone || 'No especificado'}
+					</div>
+				</div>
+			</div>
+
+			<div class="contract-section">
+				<h3>DETALLES DEL PRÉSTAMO</h3>
+				<div class="contract-info-grid">
+					<div class="contract-info-item">
+						<span class="contract-info-label">Monto del Préstamo:</span><br>
+						$${amount}
+					</div>
+					<div class="contract-info-item">
+						<span class="contract-info-label">Tasa de Interés:</span><br>
+						${interest}% anual
+					</div>
+					<div class="contract-info-item">
+						<span class="contract-info-label">Plazo:</span><br>
+						${termMonths} meses
+					</div>
+					<div class="contract-info-item">
+						<span class="contract-info-label">Fecha de Contrato:</span><br>
+						${today}
+					</div>
+				</div>
+			</div>
+
+			<div class="contract-section">
+				<h3>INMUEBLE EN GARANTÍA</h3>
+				<div class="contract-info-grid">
+					<div class="contract-info-item">
+						<span class="contract-info-label">Dirección del Inmueble:</span><br>
+						${propertyAddress}
+					</div>
+					<div class="contract-info-item">
+						<span class="contract-info-label">Valor del Inmueble:</span><br>
+						$${propertyValue}
+					</div>
+					${ltv ? `
+					<div class="contract-info-item">
+						<span class="contract-info-label">Relación Préstamo/Valor (LTV):</span><br>
+						${ltv}%
+					</div>
+					` : ''}
+				</div>
+			</div>
+
+			<div class="contract-section">
+				<h3>TÉRMINOS Y CONDICIONES</h3>
+				<p><strong>1. CONSTITUCIÓN DE HIPOTECA:</strong> El prestatario constituye primera y preferente hipoteca a favor de ${businessName} sobre el inmueble descrito, como garantía del pago del préstamo, intereses y accesorios.</p>
+				<p><strong>2. OBLIGACIONES DE PAGO:</strong> El prestatario se obliga a pagar el monto de $${amount} más intereses al ${interest}% anual dentro del plazo de ${termMonths} meses.</p>
+				<p><strong>3. INCUMPLIMIENTO:</strong> En caso de mora, el acreedor podrá exigir el saldo total y proceder conforme a la legislación aplicable para la ejecución de la garantía hipotecaria.</p>
+				<p><strong>4. SEGUROS Y GASTOS:</strong> Los gastos notariales, registrales y seguros relacionados con la hipoteca serán por cuenta del prestatario.</p>
+				${notes ? `<p><strong>5. CLÁUSULAS ADICIONALES:</strong> ${notes}</p>` : ''}
+			</div>
+
+			<div class="contract-signature-section">
+				<h3>FIRMAS</h3>
+				<p>En constancia de lo anterior, las partes firman el presente contrato en la fecha indicada.</p>
+				<div class="contract-signature-line">
+					<div class="contract-signature-box">
+						<div class="contract-signature-line-element"></div>
+						<strong>PRESTATARIO</strong><br>
+						${client.name}
+					</div>
+					<div class="contract-signature-box">
+						<div class="contract-signature-line-element"></div>
+						<strong>PRESTAMISTA</strong><br>
+						${businessName}
+					</div>
+				</div>
+				<div style="margin-top: 30px; text-align: center;">
+					<p><strong>Fecha:</strong> _________________________</p>
+					<p><strong>Lugar:</strong> _________________________</p>
+				</div>
+			</div>
+
+			<div class="contract-footer">
+				<p>Contrato hipotecario generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p>
+			</div>
+		</div>
+	`;
+
+	// Guardar en historial
+	saveContractToHistory('hipotecario', client.name, `$${amount}`);
+}
 function createLoanContract() {
     const loanSelect = document.getElementById('loan-select');
     
@@ -564,6 +807,10 @@ const contractsStyles = `
         
         .pawn-contract {
             background: #e67e22;
+        }
+        
+        .mortgage-contract {
+            background: #10b981;
         }
         
         .action-info h3 {

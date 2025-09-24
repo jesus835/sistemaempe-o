@@ -82,10 +82,112 @@ function loadReportsModule() {
                 <button class="btn btn-success" onclick="exportToExcel('collections')">
                     <i class="fas fa-file-excel"></i> Exportar Cobros
                 </button>
+                <button class="btn btn-primary" onclick="generateGeneralInterestReceipt()">
+                    <i class="fas fa-receipt"></i> Recibo General de Intereses
+                </button>
+                <button class="btn btn-primary" onclick="generateDailyReceipt()">
+                    <i class="fas fa-calendar-day"></i> Recibo Diario Consolidado
+                </button>
             </div>
         </div>
     `;
     console.log('✅ Módulo de Reportes cargado exitosamente');
+}
+
+// Recibo general por intereses
+function generateGeneralInterestReceipt() {
+    const modalContent = `
+        <div class="form-container">
+            <h3>Recibo General por Intereses</h3>
+            <p>Seleccione el cliente y los préstamos a incluir:</p>
+            <div class="form-group">
+                <label for="rec-client">Cliente</label>
+                <select id="rec-client">
+                    <option value="">Todos</option>
+                    ${app.data.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="app.closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="showGeneralInterestReceipt(document.getElementById('rec-client').value)">Generar</button>
+            </div>
+        </div>
+    `;
+    app.showModal('Recibo General por Intereses', modalContent);
+}
+
+function showGeneralInterestReceipt(clientFilter) {
+    const payments = (app.data.collections || []).filter(p => p.interest !== undefined);
+    const loans = app.data.loans || [];
+    const filtered = clientFilter ? payments.filter(p => p.clientId == clientFilter) : payments;
+
+    // Clasificar por tipo de préstamo
+    const groups = { hipotecario: 0, prendario: 0, personal: 0 };
+    filtered.forEach(p => {
+        const loan = loans.find(l => l.id === p.loanId);
+        if (!loan) return;
+        // Heurística simple por tipo (puede ajustarse según reglas del negocio)
+        const type = loan.typeCategory || 'personal';
+        if (!groups[type]) groups[type] = 0;
+        groups[type] += p.interest || 0;
+    });
+
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    const html = `
+        <div class="contract-actions">
+            <button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button>
+        </div>
+        <div class="contract-content">
+            <div class="contract-header">
+                <h1>${businessName}</h1>
+                <h2>RECIBO GENERAL POR INTERESES</h2>
+            </div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Fecha:</span><br>${new Date().toLocaleDateString('es-ES')}</div>
+                    ${clientFilter ? `<div class=\"contract-info-item\"><span class=\"contract-info-label\">Cliente:</span><br>${app.getClientName(parseInt(clientFilter))}</div>` : ''}
+                </div>
+            </div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Hipotecario:</span><br>${app.formatCurrency(groups.hipotecario || 0)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Prendario:</span><br>${app.formatCurrency(groups.prendario || 0)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Personal:</span><br>${app.formatCurrency(groups.personal || 0)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Total Intereses:</span><br>${app.formatCurrency((groups.hipotecario||0)+(groups.prendario||0)+(groups.personal||0))}</div>
+                </div>
+            </div>
+            <div class="contract-footer">
+                <p>Recibo generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p>
+            </div>
+        </div>
+    `;
+    showReportModal('Recibo General por Intereses', html);
+}
+
+function generateDailyReceipt() {
+    const today = new Date().toDateString();
+    const payments = (app.data.collections || []).filter(p => new Date(p.date).toDateString() === today);
+    const savingsTx = (app.data.savingsTransactions || []).filter(t => new Date(t.date).toDateString() === today);
+    const totalPayments = payments.reduce((s,p)=> s + (p.amount || p.total || 0), 0);
+    const totalDeposits = savingsTx.filter(t => t.type === 'deposit').reduce((s,t)=> s + t.amount, 0);
+    const totalWithdrawals = savingsTx.filter(t => t.type === 'withdraw').reduce((s,t)=> s + t.amount, 0);
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    const html = `
+        <div class="contract-actions"><button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button></div>
+        <div class="contract-content">
+            <div class="contract-header"><h1>${businessName}</h1><h2>RECIBO DIARIO CONSOLIDADO</h2></div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Fecha:</span><br>${new Date().toLocaleDateString('es-ES')}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Cobros de préstamos:</span><br>${app.formatCurrency(totalPayments)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Depósitos ahorro:</span><br>${app.formatCurrency(totalDeposits)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Retiros ahorro:</span><br>${app.formatCurrency(totalWithdrawals)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Total neto:</span><br>${app.formatCurrency(totalPayments + totalDeposits - totalWithdrawals)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+    showReportModal('Recibo Diario Consolidado', html);
 }
 
 function generateClientReport() {

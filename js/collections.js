@@ -51,6 +51,9 @@ function loadCollectionsModule() {
                     <button class="btn btn-secondary" onclick="filterCollections()">
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
+                    <button class="btn btn-primary" onclick="printDailyReceipt()">
+                        <i class="fas fa-print"></i> Recibo Diario
+                    </button>
                     <button class="btn btn-success" onclick="openCollectionModal()">
                         <i class="fas fa-plus"></i> Nuevo Cobro
                     </button>
@@ -71,6 +74,7 @@ function loadCollectionsModule() {
                             <th>Impuesto</th>
                             <th>Tipo</th>
                             <th>Usuario</th>
+                            <th>Recibo</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -88,6 +92,11 @@ function loadCollectionsModule() {
                                 <td class="text-right">${app.formatCurrency(collection.tax || 0)}</td>
                                 <td><span class="badge badge-${collection.type}">${getCollectionTypeText(collection.type)}</span></td>
                                 <td>${app.getUserName(collection.userId)}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm" onclick="printCollectionReceipt(${collection.id})">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </td>
                                 <td>
                                     <button class="btn btn-secondary" onclick="viewCollectionDetails(${collection.id})">Ver</button>
                                     <button class="btn btn-danger" onclick="deleteCollection(${collection.id})">Eliminar</button>
@@ -333,6 +342,10 @@ function saveCollection() {
     app.data.collections.push(collection);
 
     app.saveData();
+    
+    // Mostrar recibo de cobro
+    showCollectionReceipt(collection);
+    
     app.closeModal();
     loadCollectionsModule();
     alert('Cobro registrado exitosamente');
@@ -592,6 +605,113 @@ AszoLoandApp.prototype.getMonthCollections = function() {
 AszoLoandApp.prototype.getOverdueCount = function() {
     return getOverdueLoans().length;
 };
+
+// Funciones de recibos
+function printCollectionReceipt(collectionId) {
+    const collection = app.data.collections.find(c => c.id === collectionId);
+    if (!collection) return;
+    showCollectionReceipt(collection);
+}
+
+function showCollectionReceipt(collection) {
+    const loan = app.data.loans.find(l => l.id === collection.loanId);
+    const client = app.data.clients.find(c => c.id === collection.clientId);
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    
+    const html = `
+        <div class="contract-actions">
+            <button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button>
+        </div>
+        <div class="contract-content">
+            <div class="contract-header">
+                <h1>${businessName}</h1>
+                <h2>RECIBO DE COBRO</h2>
+            </div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Recibo #:</span><br>${collection.id}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Fecha:</span><br>${app.formatDate(collection.date)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Cliente:</span><br>${client ? client.name : '-'}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Préstamo #:</span><br>${collection.loanId}</div>
+                </div>
+            </div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Capital:</span><br>${app.formatCurrency(collection.capital)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Interés:</span><br>${app.formatCurrency(collection.interest)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Seguro:</span><br>${app.formatCurrency(collection.insurance || 0)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Impuesto:</span><br>${app.formatCurrency(collection.tax || 0)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Total:</span><br>${app.formatCurrency(collection.total)}</div>
+                </div>
+            </div>
+            ${collection.notes ? `<div class="contract-section"><p><strong>Notas:</strong> ${collection.notes}</p></div>` : ''}
+            <div class="contract-footer">
+                <p>Recibo generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p>
+            </div>
+        </div>
+    `;
+    
+    const section = document.getElementById('collections');
+    section.innerHTML = html;
+}
+
+function printDailyReceipt() {
+    const today = new Date().toDateString();
+    const todayCollections = app.data.collections.filter(c => new Date(c.date).toDateString() === today);
+    const totalAmount = todayCollections.reduce((sum, c) => sum + c.amount, 0);
+    const businessName = app.data.config.businessName || 'TV Pinula Demo Cobro';
+    
+    const html = `
+        <div class="contract-actions">
+            <button class="btn btn-primary" onclick="printContract()"><i class="fas fa-print"></i> Imprimir</button>
+        </div>
+        <div class="contract-content">
+            <div class="contract-header">
+                <h1>${businessName}</h1>
+                <h2>RECIBO DIARIO DE COBROS</h2>
+            </div>
+            <div class="contract-section">
+                <div class="contract-info-grid">
+                    <div class="contract-info-item"><span class="contract-info-label">Fecha:</span><br>${new Date().toLocaleDateString('es-ES')}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Total Cobros:</span><br>${app.formatCurrency(totalAmount)}</div>
+                    <div class="contract-info-item"><span class="contract-info-label">Cantidad:</span><br>${todayCollections.length}</div>
+                </div>
+            </div>
+            <div class="contract-section">
+                <h3>DETALLE DE COBROS</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Recibo</th>
+                            <th>Cliente</th>
+                            <th>Monto</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${todayCollections.map(c => {
+                            const client = app.data.clients.find(cl => cl.id === c.clientId);
+                            return `
+                                <tr>
+                                    <td>${c.id}</td>
+                                    <td>${client ? client.name : '-'}</td>
+                                    <td>${app.formatCurrency(c.amount)}</td>
+                                    <td>${getCollectionTypeText(c.type)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <div class="contract-footer">
+                <p>Recibo diario generado el ${new Date().toLocaleString('es-ES')} por ${businessName}</p>
+            </div>
+        </div>
+    `;
+    
+    const section = document.getElementById('collections');
+    section.innerHTML = html;
+}
 
 // Agregar estilos CSS para colecciones
 const collectionStyles = `
